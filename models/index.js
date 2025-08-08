@@ -1,9 +1,9 @@
 
 const Operator = require('./operator');   // Operator modelini içe aktarıyoruz
 const { DataTypes } = require('sequelize'); // Sequelize kütüphanesinden Data
-const Package = require('./package');  // Package modelini içe aktarıyoruz
-const SimCard = require('./sim_card');  // SimCard modelini içe aktarıyoruz
-const Customer = require('./customer');   // Customer modelini içe aktarıyoruz
+const Package = require('./packages');  // Package modelini içe aktarıyoruz
+const SimCard = require('./sim_cards');  // SimCard modelini içe aktarıyoruz
+const Customer = require('./customers');   // Customer modelini içe aktarıyoruz
 // Allocation modelini içe aktarıyoruz. Bu model allocations tablosunu temsil edecek
 const Allocation = require('./allocations');  // Allocation modelini içe aktarıyoruz
 

@@ -17,7 +17,7 @@ const Operator = sequelize.define('Operator', {
   }
 }, {
   tableName: 'operators',          // Veritabanında bu modelin karşılığı olan tablo adı
-  timestamps: false                // createdAt ve updatedAt gibi otomatik zaman alanları oluşturulmasın
+  timestamps: true                // createdAt ve updatedAt gibi otomatik zaman alanları oluşturulmasın
 });
 
 module.exports = Operator; // Bu modeli dışa aktarıyoruz ki controller gibi diğer dosyalarda kullanılabilsin

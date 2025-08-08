@@ -1,3 +1,4 @@
+
 // Express.js kullanarak API sunucusunu başlatır ve MySQL veritabanına Sequelize ile bağlanır.
 //  Veritabanı bağlantısı başarılıysa, /api/operators yolundaki operatör işlemlerini yöneten route dosyasını aktif eder. 
 // Sunucuyu belirlenen portta dinlemeye başlatır. Bağlantı başarısız olursa hata mesajı verir ve uygulamayı kapatır.
@@ -25,14 +26,14 @@ sequelize.authenticate()
     console.log('Veritabanı bağlantısı başarılı');
 
     // Veritabanı bağlantısı başarılı olunca, route dosyasını dahil et
-    const operatorsRoute = require('./routes/operators');
+    const operatorsRoute = require('./routes/operator');
 
     // /api/operators altındaki tüm istekleri operatorsRoute router'ına yönlendir
     app.use('/api/operators', operatorsRoute);
 
     // Sunucuyu belirtilen portta başlat
     app.listen(PORT, () => {
-      console.log('Server ${PORT} portunda çalışıyor');
+      console.log(`Server ${PORT} portunda çalışıyor`);
     });
   })
   .catch(err => {
@@ -57,3 +58,6 @@ app.use('/api/auth', authRoutes);
 
 const reportsRoute = require('./routes/reports');
 app.use('/api/reports', reportsRoute);
+
+const { swaggerUi, swaggerSpec } = require('./swagger');
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
