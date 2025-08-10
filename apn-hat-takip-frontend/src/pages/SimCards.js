@@ -1,28 +1,42 @@
-
 import React, { useEffect, useState } from "react";
 import { getSimCards } from "../services/api";
 
-function Dashboard() {
+function SimCards() {
   const [simCards, setSimCards] = useState([]);
 
   useEffect(() => {
-    getSimCards().then(setSimCards);
+    getSimCards('stok')
+      .then(setSimCards)
+      .catch(err => console.error("Sim kartlar çekilirken hata:", err));
   }, []);
-
-  const aktifHat = simCards.filter(card => card.status === "aktif").length;
-  const stokHat = simCards.filter(card => card.status === "stok").length;
 
   return (
     <div>
-      <h1>Dashboard</h1>
-      <div>
-        <div>Toplam Hat: {simCards.length}</div>
-        <div>Aktif Hat: {aktifHat}</div>
-        <div>Stokta Hat: {stokHat}</div>
-      </div>
-      {/* Grafik ve son işlemler için Chart.js veya başka bir kütüphane ekleyebilirsiniz */}
+      <h2>Hatlar (Stokta Olanlar)</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Numara</th>
+            <th>Durum</th>
+            <th>Paket</th>
+            <th>İşlemler</th>
+          </tr>
+        </thead>
+        <tbody>
+          {simCards.map(card => (
+            <tr key={card.id}>
+              <td>{card.phone_number}</td>
+              <td>{card.status}</td>
+              <td>{card.Package ? card.Package.name : '-'}</td>
+              <td>
+                {/* Buraya detay, düzenle, sil butonları ekleyebilirsiniz */}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
 
-export default Dashboard;
+export default SimCards;

@@ -33,7 +33,9 @@ const SimCard = sequelize.define('SimCard', {
   },
 }, {
   tableName: 'sim_cards',
-  timestamps: true,
+  timestamps: true,          // timestamps aktif
+  createdAt: 'createdAt',    // veritabanındaki createdAt kolonuna karşılık
+  updatedAt: 'updatedAt',    // veritabanındaki updatedAt kolonuna karşılık
 });
 
 module.exports = SimCard;

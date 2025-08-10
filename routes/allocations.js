@@ -1,4 +1,5 @@
 
+
 // burada allocation için http isteklerini yönetecek bir router oluşturuyoruz
 // allocationsController'dan fonksiyonları kullanarak CRUD işlemlerini yapacağız
 
@@ -12,12 +13,6 @@ const allocationsController = require('../controllers/allocationsController');  
  // Örn: getAll, getById, create, update, remove
 
 const auth = require('../middleware/auth');
-
-// Listeleme herkes erişebilir (örnek)
-
-
-
-
 
 
 /**
@@ -45,13 +40,7 @@ router.put('/:id', allocationsController.update);
 router.delete('/:id', allocationsController.remove);
 
 
-
-
-
-
-
-
-
+// Listeleme herkes erişebilir (örnek)
 router.get('/', allocationsController.getAll);  // tüm tahsis edilen hatları listele 
 router.get('/:id', allocationsController.getById);  
 
@@ -69,10 +58,7 @@ router.put('/:id', auth(['admin', 'user']), allocationsController.update);  //PU
 
 router.delete('/:id', auth(['admin']), allocationsController.remove);
 
+
+
 module.exports = router;   // Bu router'ı dışa aktarır.
 // Başka bir dosyada bu router kullanılabilir:
-
-
-
-
-

@@ -1,56 +1,78 @@
 
-// Express.js kullanarak API sunucusunu başlatır ve MySQL veritabanına Sequelize ile bağlanır.
-//  Veritabanı bağlantısı başarılıysa, /api/operators yolundaki operatör işlemlerini yöneten route dosyasını aktif eder. 
-// Sunucuyu belirlenen portta dinlemeye başlatır. Bağlantı başarısız olursa hata mesajı verir ve uygulamayı kapatır.
+// Express.js + Sequelize + JWT Login entegre edilmiş API
 
-const express = require('express'); // Express framework'ünü dahil ediyoruz (web sunucusu)
-const cors = require('cors');       // CORS middleware'i (başka domainlerden gelen istekleri kontrol eder)
-const sequelize = require('./config/database'); // Daha önce oluşturduğun Sequelize veritabanı bağlantısı
-const app = express();              // Express uygulaması oluşturuyoruz
-const PORT = process.env.PORT || 5000; // Çalışacak port numarası, varsa ortam değişkeninden al, yoksa 5000 kullan
+require('dotenv').config(); // .env desteği
+const express = require('express');
+const cors = require('cors');
+const jwt = require('jsonwebtoken');
+const sequelize = require('./config/database'); // Sequelize bağlantısı
 
-// Middleware: CORS ayarlarını aktif et
+const app = express();
+const PORT = process.env.PORT || 5000;
+const JWT_SECRET = process.env.JWT_SECRET || 'GizliAnahtar';
+
+// Middleware
 app.use(cors());
-
-// Middleware: Gelen JSON formatındaki isteklerin gövdesini (body) parse et
 app.use(express.json());
 
-// Ana sayfa GET isteği (örneğin http://localhost:5000/ geldiğinde)
+// Ana sayfa (test)
 app.get('/', (req, res) => {
-  res.send('APN Hat Takip API çalışıyor'); // Basit bir cevap dön
+  res.send('APN Hat Takip API çalışıyor');
 });
 
-// Veritabanı bağlantısını test et (authenticate() gerçek bağlantıyı dener)
-sequelize.authenticate()
-  .then(() => {
-    console.log('Veritabanı bağlantısı başarılı');
+// Basit demo kullanıcı (DB yerine)
+const demoUser = { username: 'admin', password: '1234' };
 
-    // Veritabanı bağlantısı başarılı olunca, route dosyasını dahil et
-    const operatorsRoute = require('./routes/operator');
+// LOGIN endpoint
+app.post('/api/login', (req, res) => {
+  try {
+    const { username, password } = req.body;
+    if (!username || !password) return res.status(400).json({ message: 'Eksik alan' });
 
-    // /api/operators altındaki tüm istekleri operatorsRoute router'ına yönlendir
-    app.use('/api/operators', operatorsRoute);
+    if (username === demoUser.username && password === demoUser.password) {
+      const token = jwt.sign({ username }, JWT_SECRET, { expiresIn: '1h' });
+      return res.json({ token });
+    }
 
-    // Sunucuyu belirtilen portta başlat
-    app.listen(PORT, () => {
-      console.log(`Server ${PORT} portunda çalışıyor`);
-    });
-  })
-  .catch(err => {
-    // Bağlantı hatası varsa hata mesajı yazdır ve uygulamayı kapat
-    console.error('Veritabanı bağlantı hatası:', err);
-    process.exit(1);
+    return res.status(401).json({ message: 'Kullanıcı adı veya şifre yanlış' });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'Sunucu hatası' });
+  }
+});
+
+// Auth middleware
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  if (!token) return res.status(401).json({ message: 'Token yok' });
+
+  jwt.verify(token, JWT_SECRET, (err, user) => {
+    if (err) return res.status(403).json({ message: 'Token geçersiz' });
+    req.user = user;
+    next();
   });
+}
+
+// Korunan test route
+app.get('/api/protected', authenticateToken, (req, res) => {
+  res.json({ message: `Hoş geldin ${req.user.username}` });
+});
+
+// ROUTE’LAR (mevcut sistemden)
+const operatorsRoute = require('./routes/operator');
+app.use('/api/operators', operatorsRoute);
 
 const simCardsRoute = require('./routes/sim_cards');
 app.use('/api/sim-cards', simCardsRoute);
 
 const packagesRoute = require('./routes/packages');
-const customersRoute = require('./routes/customers');
-const allocationsRoute = require('./routes/allocations');
-
 app.use('/api/packages', packagesRoute);
+
+const customersRoute = require('./routes/customers');
 app.use('/api/customers', customersRoute);
+
+const allocationsRoute = require('./routes/allocations');
 app.use('/api/allocations', allocationsRoute);
 
 const authRoutes = require('./routes/auth');
@@ -61,3 +83,16 @@ app.use('/api/reports', reportsRoute);
 
 const { swaggerUi, swaggerSpec } = require('./swagger');
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+// Veritabanı bağlantısı ve server başlatma
+sequelize.authenticate()
+  .then(() => {
+    console.log('Veritabanı bağlantısı başarılı');
+    app.listen(PORT, () => {
+      console.log(`Server ${PORT} portunda çalışıyor`);
+    });
+  })
+  .catch(err => {
+    console.error('Veritabanı bağlantı hatası:', err);
+    process.exit(1);
+  });
