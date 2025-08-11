@@ -3,6 +3,20 @@ import React, { useEffect, useState } from "react";
 // API’den sim kart ve tahsis verilerini çekmek için fonksiyonlar
 import { getSimCards, getAllocations } from "../services/api";
 
+
+
+// iade deneme
+import ReturnedSimCards from './ReturnedSimCards';
+
+
+
+
+
+
+
+
+
+
 function Dashboard() {
   // State’ler - backend’den gelen veriler burada saklanacak
   const [simCards, setSimCards] = useState([]);
@@ -74,6 +88,14 @@ function Dashboard() {
       </div>
     </div>
   );
+
+
+
+//iade deneme
+
+<ReturnedSimCards />
+
+
 }
 
 

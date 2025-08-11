@@ -32,17 +32,28 @@ const auth = require('../middleware/auth');
  *       200:
  *         description: Başarılı
  */
+
+
+router.get('/returns', allocationsController.getReturns);  // iade deneme
+
+
+
+
+
 router.get('/', allocationsController.getAll);
 
 router.get('/:id', allocationsController.getById);
-router.post('/', allocationsController.create);
+  router.post('/', allocationsController.create);
 router.put('/:id', allocationsController.update);
 router.delete('/:id', allocationsController.remove);
 
 
-// Listeleme herkes erişebilir (örnek)
-router.get('/', allocationsController.getAll);  // tüm tahsis edilen hatları listele 
-router.get('/:id', allocationsController.getById);  
+
+
+
+
+
+ 
 
 // Sadece admin ve user rolü erişebilir
 router.post('/', auth(['admin', 'user']), allocationsController.create);   //POST /allocations
@@ -56,7 +67,28 @@ router.put('/:id', auth(['admin', 'user']), allocationsController.update);  //PU
 // Yeni bilgiler → req.body
 // Kullanım: "5 numaralı tahsisin bilgilerini güncelle"
 
+
+
+
+
 router.delete('/:id', auth(['admin']), allocationsController.remove);
+
+
+router.get('/returns', (req, res) => {
+  res.send("Returns endpoint çalışıyor");
+});
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

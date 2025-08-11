@@ -10,7 +10,7 @@ const Customer = sequelize.define('Customer', {
   phone: { type: DataTypes.STRING(20) },
   email: { type: DataTypes.STRING(100) },
   address: { type: DataTypes.TEXT },
-  created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
+  createdAt: { type: DataTypes.DATE,field: 'createdAt', defaultValue: DataTypes.NOW }
 }, {
   tableName: 'customers',
   timestamps: false
