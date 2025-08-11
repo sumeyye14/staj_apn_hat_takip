@@ -3,19 +3,7 @@ import React, { useEffect, useState } from "react";
 // API’den sim kart ve tahsis verilerini çekmek için fonksiyonlar
 import { getSimCards, getAllocations } from "../services/api";
 
-
-
-// iade deneme
-import ReturnedSimCards from './ReturnedSimCards';
-
-
-
-
-
-
-
-
-
+// ReturnedSimCards bileşeni importunu kaldırdım çünkü kullanılmayacak
 
 function Dashboard() {
   // State’ler - backend’den gelen veriler burada saklanacak
@@ -31,6 +19,7 @@ function Dashboard() {
   // Aktif ve stokta bekleyen hat sayısını hesapla
   const aktifHat = simCards.filter(card => card.status === "aktif").length;
   const stokHat = simCards.filter(card => card.status === "stok").length;
+  const iadeHat = simCards.filter(card => card.status === "iade").length;  // EKLENDİ
 
   // Bu ay tahsis edilen hatların sayısı
   const thisMonth = new Date().getMonth();
@@ -76,6 +65,16 @@ function Dashboard() {
           </div>
         </div>
 
+        {/* İade Alınan Hatlar - YENİ KART */}
+        <div className="col-md-3 mb-3">
+          <div className="card text-white bg-danger">
+            <div className="card-body">
+              <h5 className="card-title">İade Alınan Hatlar</h5>
+              <p className="card-text fs-3">{iadeHat}</p>
+            </div>
+          </div>
+        </div>
+
         {/* Bu Ay Tahsis Edilenler */}
         <div className="col-md-3 mb-3">
           <div className="card text-white bg-info">
@@ -86,23 +85,10 @@ function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* ReturnedSimCards bileşeni kaldırıldı, detay liste görünmüyor */}
     </div>
   );
-
-
-
-//iade deneme
-
-<ReturnedSimCards />
-
-
 }
-
-
-
-
-
-
-
 
 export default Dashboard;
