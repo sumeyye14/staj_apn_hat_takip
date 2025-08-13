@@ -1,6 +1,16 @@
-const { SimCard, Allocation, Customer } = require('../models');
-const sequelize = require('sequelize');
+const { SimCard, Allocation, Customer, Package, Operator  } = require('../models');
+
+
+//grafik deneme
+// const sequelize = require('sequelize');
+const sequelize = require('../config/database');
+const { fn, col } = require('sequelize');
+
+
+
 const { Op } = require('sequelize');
+
+
 
 // Aktif hat sayısı
 exports.activeSimCardCount = async (req, res) => {
@@ -11,6 +21,12 @@ exports.activeSimCardCount = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+
+
+
+
+
 
 // Operatör bazlı hat dağılımı
 exports.operatorDistribution = async (req, res) => {
@@ -23,7 +39,11 @@ exports.operatorDistribution = async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-};
+};   
+
+
+
+
 
 // Müşteri bazlı tahsis edilen hatlar
 exports.customerAllocations = async (req, res) => {

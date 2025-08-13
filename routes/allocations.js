@@ -90,7 +90,5 @@ router.get('/returns', (req, res) => {
 
 
 
-
-
 module.exports = router;   // Bu router'ı dışa aktarır.
 // Başka bir dosyada bu router kullanılabilir:

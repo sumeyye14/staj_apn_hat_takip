@@ -1,7 +1,11 @@
 
 const express = require('express');
-const router = express.Router();
+const router =  express.Router();
 const reportsController = require('../controllers/reportsController');
+
+
+
+
 const auth = require('../middleware/auth');
 
 /**
@@ -44,5 +48,9 @@ router.get('/allocations-by-date', auth(['admin', 'user']), reportsController.al
 
 router.get('/customer-allocations', reportsController.customerAllocations);
 router.get('/allocations-by-date', reportsController.allocationsByDate);
+
+
+
+
 
 module.exports = router;

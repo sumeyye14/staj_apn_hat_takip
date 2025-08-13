@@ -1,5 +1,5 @@
 
-const { Allocation, SimCard, Customer } = require('../models');
+const { Allocation, SimCard, Customer,Package, Operator } = require('../models');
 
 exports.getAll = async (req, res) => {
   try {
@@ -87,5 +87,21 @@ exports.getReturns = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

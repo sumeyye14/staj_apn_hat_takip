@@ -13,7 +13,14 @@ function Login() {
     e.preventDefault();
     setError("");
     try {
-      const data = await login(username, password);
+      //const data = await login(username, password);
+const data = await login({ username, password });
+
+
+
+
+
+
       // Token'ı localStorage'a kaydet
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
@@ -23,6 +30,9 @@ function Login() {
       setError(err.message);
     }
   };
+
+
+
 
   return (
     <div className="container mt-5" style={{ maxWidth: "400px" }}>
