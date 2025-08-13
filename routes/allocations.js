@@ -30,3 +30,4 @@ exports.getOperatorDistributionFromAllocations = async (req, res) => {
     res.status(500).json({ error: 'Operatör dağılımı alınamadı' });
   }
 };
+module.exports = router;
