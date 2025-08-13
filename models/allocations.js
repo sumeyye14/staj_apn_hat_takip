@@ -1,8 +1,8 @@
 
-const { DataTypes } = require('sequelize');   // Sequelize kütüphanesinden DataTypes sınıfını alıyoruz.yani int string gibi veri türlerini kullanmak için.
-const sequelize = require('../config/database');// Veritabanı bağlantısını içe aktarıyoruz. Bu, config/database.js dosyasından geliyor.
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/database');
 
-const Allocation = sequelize.define('Allocation', {  // Allocation modelini tanımlıyoruz. Bu model, veritabanındaki allocations tablosunu temsil edecek.
+const Allocation = sequelize.define('Allocation', {
   id: {
     type: DataTypes.INTEGER,
     autoIncrement: true,
@@ -12,6 +12,11 @@ const Allocation = sequelize.define('Allocation', {  // Allocation modelini tan�
     type: DataTypes.INTEGER,
     allowNull: false,
   },
+  operator_id: {
+  type: DataTypes.INTEGER,
+  allowNull: true, // bazı tahsislerde boş olabilir
+},
+
   customer_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
@@ -36,5 +41,11 @@ const Allocation = sequelize.define('Allocation', {  // Allocation modelini tan�
   tableName: 'allocations',
   timestamps: true,
 });
+
+// İlişkileri tanımla
+Allocation.associate = (models) => {
+  Allocation.belongsTo(models.SimCard, { foreignKey: 'sim_card_id' });
+  Allocation.belongsTo(models.Customer, { foreignKey: 'customer_id' });
+};
 
 module.exports = Allocation;

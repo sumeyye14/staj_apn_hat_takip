@@ -1,94 +1,32 @@
 
+const { Allocation, Operator } = require('../models');
 
-// burada allocation için http isteklerini yönetecek bir router oluşturuyoruz
-// allocationsController'dan fonksiyonları kullanarak CRUD işlemlerini yapacağız
+exports.getOperatorDistributionFromAllocations = async (req, res) => {
+  try {
+    const allocations = await Allocation.findAll({
+      include: [
+        {
+          model: Operator,
+          attributes: ['name']
+        }
+      ]
+    });
 
-const express = require('express');  // Express framework'ünü içe aktarıyoruz
-const Allocation = require('../models/allocations');  // Allocation modelini içe aktarı
-const router = express.Router();  // Yeni bir router nesnesi oluşturuyoruz Bu nesne, belirli bir kaynağa (allocations) ait HTTP isteklerini tanımlamak için kullanılır.
-// Kısaca: allocation ile ilgili tüm GET, POST, PUT, DELETE işlemleri bu router'da toplanır.
+    // Operatör bazlı gruplama
+    const distribution = {};
+    allocations.forEach(a => {
+      const opName = a.Operator ? a.Operator.name : "Bilinmeyen";
+      distribution[opName] = (distribution[opName] || 0) + 1;
+    });
 
-const allocationsController = require('../controllers/allocationsController');  //controllers klasöründeki allocationsController.js dosyasını içe aktarır.
-// Bu controller, bu rotaların çağırdığı fonksiyonları içerir.
- // Örn: getAll, getById, create, update, remove
+    const result = Object.entries(distribution).map(([operator, count]) => ({
+      operator,
+      count
+    }));
 
-const auth = require('../middleware/auth');
-
-
-/**
- * @swagger
- * tags:
- *   name: Allocations
- *   description: Hat tahsis işlemleri
- */
-
-/**
- * @swagger
- * /api/allocations:
- *   get:
- *     summary: Tüm tahsisleri listeler
- *     tags: [Allocations]
- *     responses:
- *       200:
- *         description: Başarılı
- */
-
-
-router.get('/returns', allocationsController.getReturns);  // iade deneme
-
-
-
-
-
-router.get('/', allocationsController.getAll);
-
-router.get('/:id', allocationsController.getById);
-  router.post('/', allocationsController.create);
-router.put('/:id', allocationsController.update);
-router.delete('/:id', allocationsController.remove);
-
-
-
-
-
-
-
- 
-
-// Sadece admin ve user rolü erişebilir
-router.post('/', auth(['admin', 'user']), allocationsController.create);   //POST /allocations
-// Yeni bir tahsis (Allocation) kaydı oluşturur.
-// Gelen veriler req.body içindedir.
-// create fonksiyonu çalışır.
-//Kullanım: "Yeni bir müşteri için hat tahsisi yap
-router.put('/:id', auth(['admin', 'user']), allocationsController.update);  //PUT /allocations/5
-// Mevcut bir tahsis kaydını günceller.
-// Hangi tahsis güncellenecek? → :id
-// Yeni bilgiler → req.body
-// Kullanım: "5 numaralı tahsisin bilgilerini güncelle"
-
-
-
-
-
-router.delete('/:id', auth(['admin']), allocationsController.remove);
-
-
-router.get('/returns', (req, res) => {
-  res.send("Returns endpoint çalışıyor");
-});
-
-
-
-
-
-
-
-
-
-
-
-
-
-module.exports = router;   // Bu router'ı dışa aktarır.
-// Başka bir dosyada bu router kullanılabilir:
+    res.json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Operatör dağılımı alınamadı' });
+  }
+};

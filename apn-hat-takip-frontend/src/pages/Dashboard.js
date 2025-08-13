@@ -16,7 +16,7 @@ import {
 import {
   getSimCards,
   getAllocations,
-  getOperatorDistribution,
+  getOperatorDistributionFromAllocations,
 } from "../services/api";
 
 import "../styles/Dashboard.css";
@@ -39,22 +39,21 @@ function Dashboard() {
 
   const [loadingAllocations, setLoadingAllocations] = useState(true);
   const [loadingReturns, setLoadingReturns] = useState(true);
+  const [loadingOperator, setLoadingOperator] = useState(true);
 
   const [operatorDistributionData, setOperatorDistributionData] = useState(null);
   const [monthlyAllocationTrendData, setMonthlyAllocationTrendData] = useState(null);
-
   const [packageTypeDistributionData, setPackageTypeDistributionData] = useState(null);
 
   useEffect(() => {
-    // Toplam sim kart verisi
+    // Toplam sim kart ve paket tipi
     getSimCards()
       .then((data) => {
         setSimCards(data);
 
-        // Paket tipi dağılımı (sim kartlardan)
         const packageCounts = {};
         data.forEach((card) => {
-          const packageName = card.package?.name || "Bilinmeyen";
+          const packageName = card.Package?.name || "Bilinmeyen";
           packageCounts[packageName] = (packageCounts[packageName] || 0) + 1;
         });
 
@@ -64,17 +63,26 @@ function Dashboard() {
             {
               label: "Paket Tipi Dağılımı",
               data: Object.values(packageCounts),
-              backgroundColor: "rgba(75, 192, 192, 0.6)",
+              backgroundColor: Object.keys(packageCounts).map(
+                (_, i) => `hsl(${(i * 60) % 360}, 70%, 75%)`
+              ),
+              borderColor: Object.keys(packageCounts).map(
+                (_, i) => `hsl(${(i * 60) % 360}, 70%, 65%)`
+              ),
+              borderWidth: 1,
+              borderRadius: 8,
+              barPercentage: 0.8,
+              categoryPercentage: 0.7,
             },
           ],
         });
       })
       .catch(console.error);
 
-    // Operatör bazlı dağılım API çağrısı
-    getOperatorDistribution()
+    // Operatör bazlı dağılım allocations tablosundan
+    getOperatorDistributionFromAllocations()
       .then((data) => {
-        const labels = data.map((item) => item.operator || "Bilinmeyen");
+        const labels = data.map((item) => item.operator);
         const counts = data.map((item) => item.count);
 
         setOperatorDistributionData({
@@ -83,22 +91,19 @@ function Dashboard() {
             {
               label: "Operatör Bazlı Hat Sayısı",
               data: counts,
-              backgroundColor: [
-                "#FF6384",
-                "#36A2EB",
-                "#FFCE56",
-                "#4BC0C0",
-                "#9966FF",
-                "#FF9F40",
-              ],
+              backgroundColor: labels.map(
+                (_, i) => `hsl(${(i * 60) % 360}, 70%, 80%)`
+              ),
               hoverOffset: 30,
             },
           ],
         });
+
+        setLoadingOperator(false);
       })
       .catch(console.error);
 
-    // Son tahsisler (allocations) ve aylık tahsis trendi
+    // Tahsisler ve aylık trend
     getAllocations()
       .then((data) => {
         setAllocations(data);
@@ -109,8 +114,9 @@ function Dashboard() {
 
         for (let i = 5; i >= 0; i--) {
           const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
-          const label = d.toLocaleString("default", { month: "short", year: "numeric" });
-          monthLabels.push(label);
+          monthLabels.push(
+            d.toLocaleString("default", { month: "short", year: "numeric" })
+          );
 
           const count = data.filter((a) => {
             const date = new Date(a.allocation_date);
@@ -137,7 +143,7 @@ function Dashboard() {
       })
       .catch(console.error);
 
-    // İade edilen sim kartlar
+    // İadeler
     getSimCards("iade")
       .then((data) => {
         setReturnedSimCards(data);
@@ -157,8 +163,8 @@ function Dashboard() {
     return date.getMonth() === thisMonth && date.getFullYear() === thisYear;
   });
 
-  const recentAllocations = loadingAllocations ? [] : allocations.slice(-5).reverse();
-  const recentReturns = loadingReturns ? [] : returnedSimCards.slice(-5).reverse();
+  const recentAllocations = allocations.slice(-5).reverse();
+  const recentReturns = returnedSimCards.slice(-5).reverse();
 
   return (
     <div className="dashboard-container">
@@ -169,57 +175,43 @@ function Dashboard() {
 
       <div className="dashboard-cards-row">
         <div className="dashboard-card bg-toplam">
-          <h5>Toplam Hat</h5>
-          <p className="card-text">{simCards.length}</p>
+          <div className="stat-number">{simCards.length}</div>
+          <div className="stat-label">Toplam Hat</div>
         </div>
 
         <div className="dashboard-card bg-aktif">
-          <h5>Aktif Hatlar</h5>
-          <p className="card-text">{aktifHat}</p>
+          <div className="stat-number">{aktifHat}</div>
+          <div className="stat-label">Aktif Hatlar</div>
         </div>
 
         <div className="dashboard-card bg-stok">
-          <h5>Stokta Bekleyen Hatlar</h5>
-          <p className="card-text">{stokHat}</p>
+          <div className="stat-number">{stokHat}</div>
+          <div className="stat-label">Stokta Bekleyen Hatlar</div>
         </div>
 
         <div className="dashboard-card bg-iade">
-          <h5>İade Alınan Hatlar</h5>
-          <p className="card-text">{iadeHat}</p>
+          <div className="stat-number">{iadeHat}</div>
+          <div className="stat-label">İade Alınan Hatlar</div>
         </div>
 
         <div className="dashboard-card bg-tahsis">
-          <h5>Bu Ay Tahsis Edilenler</h5>
-          <p className="card-text">{thisMonthAllocations.length}</p>
+          <div className="stat-number">{thisMonthAllocations.length}</div>
+          <div className="stat-label">Bu Ay Tahsis Edilenler</div>
         </div>
       </div>
 
       <div className="dashboard-graphs">
         <section className="graph-section">
           <h4>Operatör Bazlı Dağılım (Pasta Grafik)</h4>
-          {operatorDistributionData ? (
-            <Pie
-              data={operatorDistributionData}
-              options={{ maintainAspectRatio: false }}
-              height={250}
-              width={250}
-            />
-          ) : (
-            <div>Yükleniyor...</div>
+          {loadingOperator ? <div>Yükleniyor...</div> : (
+            <Pie data={operatorDistributionData} options={{ maintainAspectRatio: false }} height={250} width={250} />
           )}
         </section>
 
         <section className="graph-section">
           <h4>Aylık Tahsis Trendi (Çizgi Grafik)</h4>
-          {monthlyAllocationTrendData ? (
-            <Line
-              data={monthlyAllocationTrendData}
-              options={{ maintainAspectRatio: false }}
-              height={250}
-              width={400}
-            />
-          ) : (
-            <div>Yükleniyor...</div>
+          {loadingAllocations ? <div>Yükleniyor...</div> : (
+            <Line data={monthlyAllocationTrendData} options={{ maintainAspectRatio: false }} height={250} width={400} />
           )}
         </section>
 
@@ -228,7 +220,19 @@ function Dashboard() {
           {packageTypeDistributionData ? (
             <Bar
               data={packageTypeDistributionData}
-              options={{ maintainAspectRatio: false }}
+              options={{
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    position: "bottom",
+                    labels: { color: "#333", font: { size: 14 } },
+                  },
+                },
+                scales: {
+                  x: { ticks: { color: "#333", font: { size: 13 } }, grid: { display: false } },
+                  y: { ticks: { color: "#333", font: { size: 13 }, stepSize: 1 }, grid: { color: "rgba(0,0,0,0.05)" } },
+                },
+              }}
               height={250}
               width={400}
             />
@@ -243,7 +247,7 @@ function Dashboard() {
           <h5>Son Tahsisler</h5>
           {loadingAllocations ? (
             <div className="spinner">Yükleniyor...</div>
-          ) : recentAllocations.length > 0 ? (
+          ) : recentAllocations.length ? (
             <table>
               <thead>
                 <tr>
@@ -273,7 +277,7 @@ function Dashboard() {
           <h5>Son İadeler</h5>
           {loadingReturns ? (
             <div className="spinner">Yükleniyor...</div>
-          ) : recentReturns.length > 0 ? (
+          ) : recentReturns.length ? (
             <table>
               <thead>
                 <tr>
