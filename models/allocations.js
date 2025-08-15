@@ -46,6 +46,8 @@ const Allocation = sequelize.define('Allocation', {
 Allocation.associate = (models) => {
   Allocation.belongsTo(models.SimCard, { foreignKey: 'sim_card_id' });
   Allocation.belongsTo(models.Customer, { foreignKey: 'customer_id' });
+  Allocation.belongsTo(Operator, { foreignKey: 'operator_id' })
+  Operator.hasMany(Allocation, { foreignKey: 'operator_id' })
 };
 
 module.exports = Allocation;

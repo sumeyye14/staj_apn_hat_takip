@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { login } from "../services/api";
 
@@ -9,30 +9,29 @@ function Login() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
+  // Sayfa açıldığında token kontrolü
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      navigate("/"); // Token varsa dashboard'a yönlendir
+    }
+  }, [navigate]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     try {
-      //const data = await login(username, password);
-const data = await login({ username, password });
+      const data = await login({ username, password });
 
-
-
-
-
-
-      // Token'ı localStorage'a kaydet
+      // Token ve kullanıcı bilgilerini kaydet
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
-      // Giriş başarılıysa dashboard'a yönlendir
-      navigate("/");
+
+      navigate("/"); // Başarılı girişte dashboard
     } catch (err) {
       setError(err.message);
     }
   };
-
-
-
 
   return (
     <div className="container mt-5" style={{ maxWidth: "400px" }}>

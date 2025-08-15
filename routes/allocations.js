@@ -1,33 +1,56 @@
 
-const { Allocation, Operator } = require('../models');
+// burada allocation için http isteklerini yönetecek bir router oluşturuyoruz
+// allocationsController'dan fonksiyonları kullanarak CRUD işlemlerini yapacağız
 
-exports.getOperatorDistributionFromAllocations = async (req, res) => {
-  try {
-    const allocations = await Allocation.findAll({
-      include: [
-        {
-          model: Operator,
-          attributes: ['name']
-        }
-      ]
-    });
+const express = require('express');  // Express framework'ünü içe aktarıyoruz
+const router = express.Router();  // Yeni bir router nesnesi oluşturuyoruz
+const allocationsController = require('../controllers/allocationsController');  // Controller dosyasını içe aktar
+const auth = require('../middleware/auth');
 
-    // Operatör bazlı gruplama
-    const distribution = {};
-    allocations.forEach(a => {
-      const opName = a.Operator ? a.Operator.name : "Bilinmeyen";
-      distribution[opName] = (distribution[opName] || 0) + 1;
-    });
+/**
+ * @swagger
+ * tags:
+ *   name: Allocations
+ *   description: Hat tahsis işlemleri
+ */
 
-    const result = Object.entries(distribution).map(([operator, count]) => ({
-      operator,
-      count
-    }));
+/**
+ * @swagger
+ * /api/allocations:
+ *   get:
+ *     summary: Tüm tahsisleri listeler
+ *     tags: [Allocations]
+ *     responses:
+ *       200:
+ *         description: Başarılı
+ */
 
-    res.json(result);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Operatör dağılımı alınamadı' });
-  }
-};
-module.exports = router;
+// İade alınan hatları listele (örnek: /api/allocations/returns) - :id rotasından önce olmalı
+router.get('/returns', allocationsController.getReturns);
+
+// Tüm tahsisleri listele (herkes erişebilir)
+router.get('/', allocationsController.getAll);
+
+// ID ile tahsis getir (herkes erişebilir)
+router.get('/:id', allocationsController.getById);
+
+// Yeni tahsis oluştur (sadece admin ve user rolü)
+router.post('/', auth(['admin', 'user']), allocationsController.create);
+
+// Tahsis güncelle (sadece admin ve user rolü)
+router.put('/:id', auth(['admin', 'user']), allocationsController.update);
+
+// Tahsis sil (sadece admin)
+router.delete('/:id', auth(['admin']), allocationsController.remove);
+
+
+
+
+
+
+
+
+
+
+
+module.exports = router;   // Bu router'ı dışa aktarır.

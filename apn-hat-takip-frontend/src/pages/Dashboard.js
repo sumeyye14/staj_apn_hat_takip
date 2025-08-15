@@ -32,7 +32,29 @@ Chart.register(
   BarElement
 );
 
+
+
+
+
+
+
+
+
+
+
+
 function Dashboard() {
+
+
+
+
+
+
+
+
+
+
+
   const [simCards, setSimCards] = useState([]);
   const [allocations, setAllocations] = useState([]);
   const [returnedSimCards, setReturnedSimCards] = useState([]);
