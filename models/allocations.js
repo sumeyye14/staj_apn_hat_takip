@@ -13,10 +13,9 @@ const Allocation = sequelize.define('Allocation', {
     allowNull: false,
   },
   operator_id: {
-  type: DataTypes.INTEGER,
-  allowNull: true, // bazı tahsislerde boş olabilir
-},
-
+    type: DataTypes.INTEGER,
+    allowNull: true, // bazı tahsislerde boş olabilir
+  },
   customer_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
@@ -37,6 +36,15 @@ const Allocation = sequelize.define('Allocation', {
     type: DataTypes.ENUM('aktif', 'iade', 'iptal'),
     defaultValue: 'aktif',
   },
+  // --- Yeni eklenen alanlar ---
+  return_reason: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  returned_at: {
+    type: DataTypes.DATE,
+    allowNull: true,
+  },
 }, {
   tableName: 'allocations',
   timestamps: true,
@@ -46,8 +54,6 @@ const Allocation = sequelize.define('Allocation', {
 Allocation.associate = (models) => {
   Allocation.belongsTo(models.SimCard, { foreignKey: 'sim_card_id' });
   Allocation.belongsTo(models.Customer, { foreignKey: 'customer_id' });
-  Allocation.belongsTo(Operator, { foreignKey: 'operator_id' })
-  Operator.hasMany(Allocation, { foreignKey: 'operator_id' })
 };
 
 module.exports = Allocation;

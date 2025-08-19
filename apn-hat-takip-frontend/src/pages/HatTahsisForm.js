@@ -1,17 +1,19 @@
 
 import React, { useState, useEffect } from "react";
-import { getCustomers, getSimCards, createAllocation } from "../services/api";
+import { getCustomers, getSimCards, createAllocation, getOperators } from "../services/api";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 function HatTahsisForm() {
   const [customers, setCustomers] = useState([]);
   const [simCards, setSimCards] = useState([]);
+  const [operators, setOperators] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
   const [form, setForm] = useState({
     customer_id: "",
     sim_card_id: "",
+    operator_id: "", // <-- Yeni alan eklendi
     ip_address: "",
     has_static_ip: false,
     installation_location: "",
@@ -29,8 +31,10 @@ function HatTahsisForm() {
         setLoading(true);
         const customersData = await getCustomers();
         const simData = await getSimCards("stok"); // Sadece stokta olanlar
+        const operatorsData = await getOperators(); // Operatörleri çek
         setCustomers(customersData || []);
         setSimCards(simData || []);
+        setOperators(operatorsData || []);
       } catch (err) {
         setError("Veri yüklenirken hata oluştu.");
       } finally {
@@ -48,19 +52,7 @@ function HatTahsisForm() {
     }));
   };
 
-
-
-
-
-
-
-
-
-
-
-
-
-  /*const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setSuccess("");
@@ -77,14 +69,15 @@ function HatTahsisForm() {
         ...form,
         customer_id: Number(form.customer_id),
         sim_card_id: Number(form.sim_card_id),
+        operator_id: form.operator_id ? Number(form.operator_id) : null, // boş bırakılabilir
       });
 
-      setSuccess("Tahsis işlemi başarılı!");
+      setSuccess("Tahsis işlemi başarılı! Sim kart artık aktif.");
 
-      // Formu resetle
       setForm({
         customer_id: "",
         sim_card_id: "",
+        operator_id: "", // reset
         ip_address: "",
         has_static_ip: false,
         installation_location: "",
@@ -93,86 +86,15 @@ function HatTahsisForm() {
         allocation_date: "",
       });
 
-      // 🔄 Stok listesi tekrar fetch edilir, aktif olan sim kart stokta gözükmez
       const simData = await getSimCards("stok");
       setSimCards(simData || []);
-
     } catch (err) {
-      setError("Tahsis sırasında hata oluştu.");
+      console.error(err);
+      setError(err.response?.data?.error || "Tahsis sırasında hata oluştu.");
     } finally {
       setSubmitting(false);
     }
-  };*/
-
-
-  const handleSubmit = async (e) => {
-  e.preventDefault();
-  setError("");
-  setSuccess("");
-
-  if (!form.customer_id || !form.sim_card_id || !form.allocation_date) {
-    setError("Lütfen tüm zorunlu alanları doldurun.");
-    return;
-  }
-
-  try {
-    setSubmitting(true);
-
-    // Backend tarafında artık allocation oluştururken sim_card status = 'aktif' oluyor
-    await createAllocation({
-      ...form,
-      customer_id: Number(form.customer_id),
-      sim_card_id: Number(form.sim_card_id),
-    });
-
-    setSuccess("Tahsis işlemi başarılı! Sim kart artık aktif.");
-    
-    // Formu sıfırla
-    setForm({
-      customer_id: "",
-      sim_card_id: "",
-      ip_address: "",
-      has_static_ip: false,
-      installation_location: "",
-      installation_notes: "",
-      billing_type: "aylik",
-      allocation_date: "",
-    });
-
-    // Stokta olan sim kart listesini güncelle
-    const simData = await getSimCards("stok");
-    setSimCards(simData || []);
-
-  } catch (err) {
-    console.error(err);
-    setError(err.response?.data?.error || "Tahsis sırasında hata oluştu.");
-  } finally {
-    setSubmitting(false);
-  }
-};
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  };
 
   if (loading) return <div className="spinner-border text-info"></div>;
 
@@ -199,6 +121,15 @@ function HatTahsisForm() {
             <select className="form-select bg-dark text-white" name="sim_card_id" value={form.sim_card_id} onChange={handleChange} required>
               <option value="">Seçiniz</option>
               {simCards.map(s => <option key={s.id} value={s.id}>{s.phone_number}</option>)}
+            </select>
+          </div>
+
+          {/* Operator select */}
+          <div className="col-md-6">
+            <label className="form-label">Operator</label>
+            <select className="form-select bg-dark text-white" name="operator_id" value={form.operator_id} onChange={handleChange}>
+              <option value="">Seçiniz</option>
+              {operators.map(op => <option key={op.id} value={op.id}>{op.name}</option>)}
             </select>
           </div>
 

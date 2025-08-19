@@ -50,4 +50,5 @@ const SimCard = sequelize.define('SimCard', {
 // SimCard ile Operator ilişkisi
 SimCard.belongsTo(Operator, { foreignKey: 'operator_id' });
 
+
 module.exports = SimCard;

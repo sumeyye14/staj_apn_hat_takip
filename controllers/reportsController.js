@@ -18,8 +18,11 @@ exports.activeSimCardCount = async (req, res) => {
 // 2. Operatör bazlı sim kart dağılımı
 exports.operatorDistribution = async (req, res) => {
   try {
+
     const data = await SimCard.findAll({
       attributes: [
+
+
         [sequelize.col('Package.Operator.name'), 'operatorName'],
         [sequelize.fn('COUNT', sequelize.col('SimCard.id')), 'count']
       ],
@@ -48,6 +51,8 @@ exports.operatorDistribution = async (req, res) => {
 
     res.json(result);
   } catch (err) {
+
+
     console.error('Operator distribution error:', err);
     res.status(500).json({ message: 'Sunucu hatası', error: err.message });
   }
@@ -56,12 +61,13 @@ exports.operatorDistribution = async (req, res) => {
 // 2b. Allocation tablosundan operatör dağılımı (pasta grafiği için)
 exports.operatorDistributionFromAllocations = async (req, res) => {
   try {
+
     const allocations = await Allocation.findAll({
       include: [
         { model: Operator, attributes: ['name'], required: false } // Operator boş olsa da query çalışır
       ]
     });
-
+    
     if (!allocations || allocations.length === 0) return res.json([]);
 
     const distribution = allocations.reduce((acc, a) => {
@@ -74,10 +80,14 @@ exports.operatorDistributionFromAllocations = async (req, res) => {
     res.json(result);
 
   } catch (err) {
-    console.error('Operator distribution from allocations error:', err);
+    //console.error('Operator distribution from allocations error:', err);
+    console.error("Hata /api/reports/operator-distribution-from-allocations:", error);
+
     res.status(500).json({ message: 'Sunucu hatası', error: err.message });
   }
 };
+
+
 
 // 3. Müşteri tahsisleri
 exports.customerAllocations = async (req, res) => {
