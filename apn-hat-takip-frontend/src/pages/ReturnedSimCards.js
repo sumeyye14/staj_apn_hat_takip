@@ -31,12 +31,18 @@ function ReturnedSimCards() {
     }
 
     try {
-      const res = await axios.get("http://localhost:5000/api/allocations", {
+      // Aktif tahsisleri çek
+      const resActive = await axios.get("http://localhost:5000/api/allocations", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      setActiveCards(res.data.filter((a) => a.status === "aktif"));
-      setReturnedCards(res.data.filter((a) => a.status === "iade"));
+      // İade tahsisleri çek
+      const resReturned = await axios.get("http://localhost:5000/api/allocations/returns", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setActiveCards(resActive.data);
+      setReturnedCards(resReturned.data);
     } catch (err) {
       console.error(err);
       setError("Veriler çekilemedi.");
@@ -63,7 +69,6 @@ function ReturnedSimCards() {
 
       if (res.status === 200) {
         fetchData(); // iade sonrası veriyi tekrar çek
-
         setSelectedReasons((prev) => ({ ...prev, [allocation.id]: "" }));
         setOtherReasons((prev) => ({ ...prev, [allocation.id]: "" }));
       }
