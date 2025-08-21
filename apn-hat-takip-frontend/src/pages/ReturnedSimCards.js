@@ -23,52 +23,35 @@ function ReturnedSimCards() {
 
   const token = localStorage.getItem("token");
 
-  useEffect(() => {
+  const fetchData = async () => {
     if (!token) {
       setError("Lütfen giriş yapın.");
       setLoading(false);
       return;
     }
 
-    const fetchData = async () => {
-      try {
-        // Aktif hatlar
-        const activeRes = await axios.get(
-          "http://localhost:5000/api/allocations?status=aktif",
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+    try {
+      const res = await axios.get("http://localhost:5000/api/allocations", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-        // İade edilmiş hatlar
-        const returnedRes = await axios.get(
-          "http://localhost:5000/api/allocations/returns",
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+      setActiveCards(res.data.filter((a) => a.status === "aktif"));
+      setReturnedCards(res.data.filter((a) => a.status === "iade"));
+    } catch (err) {
+      console.error(err);
+      setError("Veriler çekilemedi.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        // Üstteki aktif listeden iade edilmiş olanları çıkart
-        const activeFiltered = activeRes.data.filter(
-          (a) => !returnedRes.data.some((r) => r.id === a.id)
-        );
-
-        setActiveCards(activeFiltered);
-        setReturnedCards(returnedRes.data);
-
-      } catch (err) {
-        console.error(err);
-        setError("Veriler çekilemedi.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
+  useEffect(() => {
     fetchData();
   }, [token]);
 
   const handleReturn = async (allocation) => {
     let reason = selectedReasons[allocation.id];
-    if (reason === "Diğer") {
-      reason = otherReasons[allocation.id]?.trim();
-    }
-
+    if (reason === "Diğer") reason = otherReasons[allocation.id]?.trim();
     if (!reason) return alert("Lütfen iade nedeni seçin veya girin.");
 
     try {
@@ -79,52 +62,38 @@ function ReturnedSimCards() {
       );
 
       if (res.status === 200) {
-        // Aktif hatlardan kaldır
-        setActiveCards((prev) => prev.filter((card) => card.id !== allocation.id));
-        // İade edilmiş hatlara ekle
-        setReturnedCards((prev) => [...prev, res.data.allocation]);
+        fetchData(); // iade sonrası veriyi tekrar çek
 
         setSelectedReasons((prev) => ({ ...prev, [allocation.id]: "" }));
         setOtherReasons((prev) => ({ ...prev, [allocation.id]: "" }));
       }
     } catch (err) {
       console.error(err);
-      if (err.response?.data?.error) {
-        alert("Hata: " + err.response.data.error);
-      } else {
-        alert("İade işlemi sırasında hata oluştu.");
-      }
+      alert(err.response?.data?.error || "İade işlemi sırasında hata oluştu.");
     }
   };
 
   const filteredActive = activeCards.filter(
     (card) =>
       card.SimCard?.phone_number?.includes(searchTerm) ||
-      card.Customer?.company_name
-        ?.toLowerCase()
-        .includes(searchTerm.toLowerCase())
+      card.Customer?.company_name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const filteredReturned = returnedCards.filter(
     (card) =>
       card.SimCard?.phone_number?.includes(searchTerm) ||
-      card.Customer?.company_name
-        ?.toLowerCase()
-        .includes(searchTerm.toLowerCase())
+      card.Customer?.company_name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (loading) {
+  if (loading)
     return (
       <div className="text-center mt-5">
         <div className="spinner-border text-info" role="status" />
         <div className="mt-2 text-info">Yükleniyor...</div>
       </div>
     );
-  }
 
-  if (error) {
-    return <div className="alert alert-danger text-center mt-4">{error}</div>;
-  }
+  if (error) return <div className="alert alert-danger text-center mt-4">{error}</div>;
 
   return (
     <div className="container mt-4">
@@ -176,10 +145,7 @@ function ReturnedSimCards() {
                         className="form-select"
                         value={selectedReasons[card.id] || ""}
                         onChange={(e) =>
-                          setSelectedReasons({
-                            ...selectedReasons,
-                            [card.id]: e.target.value,
-                          })
+                          setSelectedReasons({ ...selectedReasons, [card.id]: e.target.value })
                         }
                       >
                         <option value="">Seçiniz</option>
@@ -196,19 +162,13 @@ function ReturnedSimCards() {
                           placeholder="Sebebi girin"
                           value={otherReasons[card.id] || ""}
                           onChange={(e) =>
-                            setOtherReasons({
-                              ...otherReasons,
-                              [card.id]: e.target.value,
-                            })
+                            setOtherReasons({ ...otherReasons, [card.id]: e.target.value })
                           }
                         />
                       )}
                     </td>
                     <td>
-                      <button
-                        className="btn btn-info btn-sm"
-                        onClick={() => handleReturn(card)}
-                      >
+                      <button className="btn btn-info btn-sm" onClick={() => handleReturn(card)}>
                         İade Et
                       </button>
                     </td>
@@ -230,13 +190,11 @@ function ReturnedSimCards() {
             fontSize: "1.25rem",
           }}
         >
-          İade Edilmiş Hatlar
+          İade Kayıtları Arşivi
         </div>
         <div className="card-body">
           {filteredReturned.length === 0 ? (
-            <div className="text-center text-muted py-4">
-              İade edilmiş hat bulunamadı.
-            </div>
+            <div className="text-center text-muted py-4">İade edilmiş hat bulunamadı.</div>
           ) : (
             <table className="table table-hover mb-0">
               <thead className="text-success" style={{ backgroundColor: "#dff0d8" }}>
@@ -253,7 +211,7 @@ function ReturnedSimCards() {
                     <td>{card.SimCard?.phone_number || "-"}</td>
                     <td>{card.Customer?.company_name || "-"}</td>
                     <td>{card.return_reason || "-"}</td>
-                    <td>{card.returned_at ? new Date(card.returned_at).toLocaleDateString() : "-"}</td>
+                    <td>{card.returned_at ? new Date(card.returned_at).toLocaleString() : "-"}</td>
                   </tr>
                 ))}
               </tbody>
